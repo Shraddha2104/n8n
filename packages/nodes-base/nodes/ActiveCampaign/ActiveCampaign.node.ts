@@ -1,34 +1,23 @@
-import {
-	IExecuteFunctions,
-} from 'n8n-core';
+import { IExecuteFunctions } from 'n8n-core';
 
 import {
 	IDataObject,
 	INodeTypeDescription,
 	INodeExecutionData,
-	INodeType,
+	INodeType
 } from 'n8n-workflow';
 
 import {
 	activeCampaignApiRequest,
 	activeCampaignApiRequestAllItems,
-	IProduct,
+	IProduct
 } from './GenericFunctions';
 
-import {
-	contactOperations,
-	contactFields
-} from './ContactDescription';
+import { contactOperations, contactFields } from './ContactDescription';
 
-import {
-	dealOperations,
-	dealFields
-} from './DealDescription';
+import { dealOperations, dealFields } from './DealDescription';
 
-import {
-	ecomOrderOperations,
-	ecomOrderFields
-} from './EcomOrderDescription';
+import { ecomOrderOperations, ecomOrderFields } from './EcomOrderDescription';
 
 import {
 	ecomCustomerOperations,
@@ -50,7 +39,6 @@ interface CustomProperty {
 	value: string;
 }
 
-
 /**
  * Add the additional fields to the body
  *
@@ -59,8 +47,12 @@ interface CustomProperty {
  */
 function addAdditionalFields(body: IDataObject, additionalFields: IDataObject) {
 	for (const key of Object.keys(additionalFields)) {
-		if (key === 'customProperties' && (additionalFields.customProperties as IDataObject).property !== undefined) {
-			for (const customProperty of (additionalFields.customProperties as IDataObject)!.property! as CustomProperty[]) {
+		if (
+			key === 'customProperties' &&
+			(additionalFields.customProperties as IDataObject).property !== undefined
+		) {
+			for (const customProperty of (additionalFields.customProperties as IDataObject)!
+				.property! as CustomProperty[]) {
 				body[customProperty.name] = customProperty.value;
 			}
 		} else {
@@ -80,14 +72,14 @@ export class ActiveCampaign implements INodeType {
 		description: 'Create and edit data in ActiveCampaign',
 		defaults: {
 			name: 'ActiveCampaign',
-			color: '#356ae6',
+			color: '#356ae6'
 		},
 		inputs: ['main'],
 		outputs: ['main'],
 		credentials: [
 			{
 				name: 'activeCampaignApi',
-				required: true,
+				required: true
 			}
 		],
 		properties: [
@@ -101,11 +93,11 @@ export class ActiveCampaign implements INodeType {
 				options: [
 					{
 						name: 'Contact',
-						value: 'contact',
+						value: 'contact'
 					},
 					{
 						name: 'Deal',
-						value: 'deal',
+						value: 'deal'
 					},
 					{
 						name: 'Connection',
@@ -113,11 +105,11 @@ export class ActiveCampaign implements INodeType {
 					},
 					{
 						name: 'E-commerce Order',
-						value: 'ecommerceOrder',
+						value: 'ecommerceOrder'
 					},
 					{
 						name: 'E-Commerce Customer',
-						value: 'ecommerceCustomer',
+						value: 'ecommerceCustomer'
 					},
 					{
 						name: 'E-commerce Order Products',
@@ -125,7 +117,7 @@ export class ActiveCampaign implements INodeType {
 					}
 				],
 				default: 'contact',
-				description: 'The resource to operate on.',
+				description: 'The resource to operate on.'
 			},
 
 			// ----------------------------------
@@ -169,11 +161,9 @@ export class ActiveCampaign implements INodeType {
 			// ----------------------------------
 			//         ecommerceOrderProducts
 			// ----------------------------------
-			...ecomOrderProductsFields,
-
-		],
+			...ecomOrderProductsFields
+		]
 	};
-
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
@@ -210,7 +200,10 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'POST';
 
-					const updateIfExists = this.getNodeParameter('updateIfExists', i) as boolean;
+					const updateIfExists = this.getNodeParameter(
+						'updateIfExists',
+						i
+					) as boolean;
 					if (updateIfExists === true) {
 						endpoint = '/api/3/contact/sync';
 					} else {
@@ -220,12 +213,14 @@ export class ActiveCampaign implements INodeType {
 					dataKey = 'contact';
 
 					body.contact = {
-						email: this.getNodeParameter('email', i) as string,
+						email: this.getNodeParameter('email', i) as string
 					} as IDataObject;
 
-					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const additionalFields = this.getNodeParameter(
+						'additionalFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.contact as IDataObject, additionalFields);
-
 				} else if (operation === 'delete') {
 					// ----------------------------------
 					//         contact:delete
@@ -235,7 +230,6 @@ export class ActiveCampaign implements INodeType {
 
 					const contactId = this.getNodeParameter('contactId', i) as number;
 					endpoint = `/api/3/contacts/${contactId}`;
-
 				} else if (operation === 'get') {
 					// ----------------------------------
 					//         contact:get
@@ -245,7 +239,6 @@ export class ActiveCampaign implements INodeType {
 
 					const contactId = this.getNodeParameter('contactId', i) as number;
 					endpoint = `/api/3/contacts/${contactId}`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         contacts:getAll
@@ -260,7 +253,6 @@ export class ActiveCampaign implements INodeType {
 
 					dataKey = 'contacts';
 					endpoint = `/api/3/contacts`;
-
 				} else if (operation === 'update') {
 					// ----------------------------------
 					//         contact:update
@@ -275,9 +267,11 @@ export class ActiveCampaign implements INodeType {
 
 					body.contact = {} as IDataObject;
 
-					const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					const updateFields = this.getNodeParameter(
+						'updateFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.contact as IDataObject, updateFields);
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
@@ -295,7 +289,7 @@ export class ActiveCampaign implements INodeType {
 						title: this.getNodeParameter('title', i) as string,
 						contact: this.getNodeParameter('contact', i) as string,
 						value: this.getNodeParameter('value', i) as number,
-						currency: this.getNodeParameter('currency', i) as string,
+						currency: this.getNodeParameter('currency', i) as string
 					} as IDataObject;
 
 					const group = this.getNodeParameter('group', i) as string;
@@ -313,9 +307,11 @@ export class ActiveCampaign implements INodeType {
 						addAdditionalFields(body.deal as IDataObject, { stage });
 					}
 
-					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const additionalFields = this.getNodeParameter(
+						'additionalFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.deal as IDataObject, additionalFields);
-
 				} else if (operation === 'update') {
 					// ----------------------------------
 					//         deal:update
@@ -328,9 +324,11 @@ export class ActiveCampaign implements INodeType {
 
 					body.deal = {} as IDataObject;
 
-					const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					const updateFields = this.getNodeParameter(
+						'updateFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.deal as IDataObject, updateFields);
-
 				} else if (operation === 'delete') {
 					// ----------------------------------
 					//         deal:delete
@@ -340,7 +338,6 @@ export class ActiveCampaign implements INodeType {
 
 					const dealId = this.getNodeParameter('dealId', i) as number;
 					endpoint = `/api/3/deals/${dealId}`;
-
 				} else if (operation === 'get') {
 					// ----------------------------------
 					//         deal:get
@@ -350,7 +347,6 @@ export class ActiveCampaign implements INodeType {
 
 					const dealId = this.getNodeParameter('dealId', i) as number;
 					endpoint = `/api/3/deals/${dealId}`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         deals:getAll
@@ -364,7 +360,6 @@ export class ActiveCampaign implements INodeType {
 					}
 
 					endpoint = `/api/3/deals`;
-
 				} else if (operation === 'createNote') {
 					// ----------------------------------
 					//         deal:createNote
@@ -372,12 +367,11 @@ export class ActiveCampaign implements INodeType {
 					requestMethod = 'POST';
 
 					body.note = {
-						note: this.getNodeParameter('dealNote', i) as string,
+						note: this.getNodeParameter('dealNote', i) as string
 					} as IDataObject;
 
 					const dealId = this.getNodeParameter('dealId', i) as number;
 					endpoint = `/api/3/deals/${dealId}/notes`;
-
 				} else if (operation === 'updateNote') {
 					// ----------------------------------
 					//         deal:updateNote
@@ -385,13 +379,12 @@ export class ActiveCampaign implements INodeType {
 					requestMethod = 'PUT';
 
 					body.note = {
-						note: this.getNodeParameter('dealNote', i) as string,
+						note: this.getNodeParameter('dealNote', i) as string
 					} as IDataObject;
 
 					const dealId = this.getNodeParameter('dealId', i) as number;
 					const dealNoteId = this.getNodeParameter('dealNoteId', i) as number;
 					endpoint = `/api/3/deals/${dealId}/notes/${dealNoteId}`;
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
@@ -410,9 +403,8 @@ export class ActiveCampaign implements INodeType {
 						externalid: this.getNodeParameter('externalid', i) as string,
 						name: this.getNodeParameter('name', i) as string,
 						logoUrl: this.getNodeParameter('logoUrl', i) as string,
-						linkUrl: this.getNodeParameter('linkUrl', i) as string,
+						linkUrl: this.getNodeParameter('linkUrl', i) as string
 					} as IDataObject;
-
 				} else if (operation === 'update') {
 					// ----------------------------------
 					//         connection:update
@@ -420,14 +412,19 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'PUT';
 
-					const connectionId = this.getNodeParameter('connectionId', i) as number;
+					const connectionId = this.getNodeParameter(
+						'connectionId',
+						i
+					) as number;
 					endpoint = `/api/3/connections/${connectionId}`;
 
 					body.connection = {} as IDataObject;
 
-					const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					const updateFields = this.getNodeParameter(
+						'updateFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.connection as IDataObject, updateFields);
-
 				} else if (operation === 'delete') {
 					// ----------------------------------
 					//         connection:delete
@@ -435,9 +432,11 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'DELETE';
 
-					const connectionId = this.getNodeParameter('connectionId', i) as number;
+					const connectionId = this.getNodeParameter(
+						'connectionId',
+						i
+					) as number;
 					endpoint = `/api/3/connections/${connectionId}`;
-
 				} else if (operation === 'get') {
 					// ----------------------------------
 					//         connection:get
@@ -445,9 +444,11 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'GET';
 
-					const connectionId = this.getNodeParameter('connectionId', i) as number;
+					const connectionId = this.getNodeParameter(
+						'connectionId',
+						i
+					) as number;
 					endpoint = `/api/3/connections/${connectionId}`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         connections:getAll
@@ -461,7 +462,6 @@ export class ActiveCampaign implements INodeType {
 					}
 
 					endpoint = `/api/3/connections`;
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
@@ -479,10 +479,15 @@ export class ActiveCampaign implements INodeType {
 						source: this.getNodeParameter('source', i) as string,
 						email: this.getNodeParameter('email', i) as string,
 						totalPrice: this.getNodeParameter('totalPrice', i) as number,
-						currency: this.getNodeParameter('currency', i).toString().toUpperCase() as string,
-						externalCreatedDate: this.getNodeParameter('externalCreatedDate', i) as string,
+						currency: this.getNodeParameter('currency', i)
+							.toString()
+							.toUpperCase() as string,
+						externalCreatedDate: this.getNodeParameter(
+							'externalCreatedDate',
+							i
+						) as string,
 						connectionid: this.getNodeParameter('connectionid', i) as number,
-						customerid: this.getNodeParameter('customerid', i) as number,
+						customerid: this.getNodeParameter('customerid', i) as number
 					} as IDataObject;
 
 					const externalid = this.getNodeParameter('externalid', i) as string;
@@ -490,22 +495,37 @@ export class ActiveCampaign implements INodeType {
 						addAdditionalFields(body.ecomOrder as IDataObject, { externalid });
 					}
 
-					const externalcheckoutid = this.getNodeParameter('externalcheckoutid', i) as string;
+					const externalcheckoutid = this.getNodeParameter(
+						'externalcheckoutid',
+						i
+					) as string;
 					if (externalcheckoutid !== '') {
-						addAdditionalFields(body.ecomOrder as IDataObject, { externalcheckoutid });
+						addAdditionalFields(body.ecomOrder as IDataObject, {
+							externalcheckoutid
+						});
 					}
 
-					const abandonedDate = this.getNodeParameter('abandonedDate', i) as string;
+					const abandonedDate = this.getNodeParameter(
+						'abandonedDate',
+						i
+					) as string;
 					if (abandonedDate !== '') {
-						addAdditionalFields(body.ecomOrder as IDataObject, { abandonedDate });
+						addAdditionalFields(body.ecomOrder as IDataObject, {
+							abandonedDate
+						});
 					}
 
-					const orderProducts = this.getNodeParameter('orderProducts', i) as unknown as IProduct[];
+					const orderProducts = (this.getNodeParameter(
+						'orderProducts',
+						i
+					) as unknown) as IProduct[];
 					addAdditionalFields(body.ecomOrder as IDataObject, { orderProducts });
 
-					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const additionalFields = this.getNodeParameter(
+						'additionalFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.ecomOrder as IDataObject, additionalFields);
-
 				} else if (operation === 'update') {
 					// ----------------------------------
 					//         ecommerceOrder:update
@@ -518,9 +538,11 @@ export class ActiveCampaign implements INodeType {
 
 					body.ecomOrder = {} as IDataObject;
 
-					const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					const updateFields = this.getNodeParameter(
+						'updateFields',
+						i
+					) as IDataObject;
 					addAdditionalFields(body.ecomOrder as IDataObject, updateFields);
-
 				} else if (operation === 'delete') {
 					// ----------------------------------
 					//         ecommerceOrder:delete
@@ -530,7 +552,6 @@ export class ActiveCampaign implements INodeType {
 
 					const orderId = this.getNodeParameter('orderId', i) as number;
 					endpoint = `/api/3/ecomOrders/${orderId}`;
-
 				} else if (operation === 'get') {
 					// ----------------------------------
 					//         ecommerceOrder:get
@@ -540,7 +561,6 @@ export class ActiveCampaign implements INodeType {
 
 					const orderId = this.getNodeParameter('orderId', i) as number;
 					endpoint = `/api/3/ecomOrders/${orderId}`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         ecommerceOrders:getAll
@@ -554,7 +574,6 @@ export class ActiveCampaign implements INodeType {
 					}
 
 					endpoint = `/api/3/ecomOrders`;
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
@@ -571,10 +590,13 @@ export class ActiveCampaign implements INodeType {
 					body.ecomCustomer = {
 						connectionid: this.getNodeParameter('connectionid', i) as string,
 						externalid: this.getNodeParameter('externalid', i) as string,
-						email: this.getNodeParameter('email', i) as string,
+						email: this.getNodeParameter('email', i) as string
 					} as IDataObject;
 
-					const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					const additionalFields = this.getNodeParameter(
+						'additionalFields',
+						i
+					) as IDataObject;
 					if (additionalFields.acceptsMarketing !== undefined) {
 						if (additionalFields.acceptsMarketing === true) {
 							additionalFields.acceptsMarketing = '1';
@@ -582,8 +604,10 @@ export class ActiveCampaign implements INodeType {
 							additionalFields.acceptsMarketing = '0';
 						}
 					}
-					addAdditionalFields(body.ecomCustomer as IDataObject, additionalFields);
-
+					addAdditionalFields(
+						body.ecomCustomer as IDataObject,
+						additionalFields
+					);
 				} else if (operation === 'update') {
 					// ----------------------------------
 					//         ecommerceCustomer:update
@@ -591,12 +615,18 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'PUT';
 
-					const ecommerceCustomerId = this.getNodeParameter('ecommerceCustomerId', i) as number;
+					const ecommerceCustomerId = this.getNodeParameter(
+						'ecommerceCustomerId',
+						i
+					) as number;
 					endpoint = `/api/3/ecomCustomers/${ecommerceCustomerId}`;
 
 					body.ecomCustomer = {} as IDataObject;
 
-					const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					const updateFields = this.getNodeParameter(
+						'updateFields',
+						i
+					) as IDataObject;
 					if (updateFields.acceptsMarketing !== undefined) {
 						if (updateFields.acceptsMarketing === true) {
 							updateFields.acceptsMarketing = '1';
@@ -605,7 +635,6 @@ export class ActiveCampaign implements INodeType {
 						}
 					}
 					addAdditionalFields(body.ecomCustomer as IDataObject, updateFields);
-
 				} else if (operation === 'delete') {
 					// ----------------------------------
 					//         ecommerceCustomer:delete
@@ -613,9 +642,11 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'DELETE';
 
-					const ecommerceCustomerId = this.getNodeParameter('ecommerceCustomerId', i) as number;
+					const ecommerceCustomerId = this.getNodeParameter(
+						'ecommerceCustomerId',
+						i
+					) as number;
 					endpoint = `/api/3/ecomCustomers/${ecommerceCustomerId}`;
-
 				} else if (operation === 'get') {
 					// ----------------------------------
 					//         ecommerceCustomer:get
@@ -623,9 +654,11 @@ export class ActiveCampaign implements INodeType {
 
 					requestMethod = 'GET';
 
-					const ecommerceCustomerId = this.getNodeParameter('ecommerceCustomerId', i) as number;
+					const ecommerceCustomerId = this.getNodeParameter(
+						'ecommerceCustomerId',
+						i
+					) as number;
 					endpoint = `/api/3/ecomCustomers/${ecommerceCustomerId}`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         ecommerceCustomers:getAll
@@ -639,7 +672,6 @@ export class ActiveCampaign implements INodeType {
 					}
 
 					endpoint = `/api/3/ecomCustomers`;
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
@@ -653,8 +685,6 @@ export class ActiveCampaign implements INodeType {
 
 					const procuctId = this.getNodeParameter('procuctId', i) as number;
 					endpoint = `/api/3/ecomOrderProducts/${procuctId}`;
-
-
 				} else if (operation === 'getByOrderId') {
 					// ----------------------------------
 					//         ecommerceOrderProducts:getByOrderId
@@ -664,7 +694,6 @@ export class ActiveCampaign implements INodeType {
 
 					const orderId = this.getNodeParameter('orderId', i) as number;
 					endpoint = `/api/3/ecomOrders/${orderId}/orderProducts`;
-
 				} else if (operation === 'getAll') {
 					// ----------------------------------
 					//         ecommerceOrderProductss:getAll
@@ -678,20 +707,32 @@ export class ActiveCampaign implements INodeType {
 					}
 
 					endpoint = `/api/3/ecomOrderProducts`;
-
 				} else {
 					throw new Error(`The operation "${operation}" is not known`);
 				}
-
 			} else {
 				throw new Error(`The resource "${resource}" is not known!`);
 			}
 
 			let responseData;
 			if (returnAll === true) {
-				responseData = await activeCampaignApiRequestAllItems.call(this, requestMethod, endpoint, body, qs, dataKey);
+				responseData = await activeCampaignApiRequestAllItems.call(
+					this,
+					requestMethod,
+					endpoint,
+					body,
+					qs,
+					dataKey
+				);
 			} else {
-				responseData = await activeCampaignApiRequest.call(this, requestMethod, endpoint, body, qs, dataKey);
+				responseData = await activeCampaignApiRequest.call(
+					this,
+					requestMethod,
+					endpoint,
+					body,
+					qs,
+					dataKey
+				);
 			}
 
 			if (Array.isArray(responseData)) {

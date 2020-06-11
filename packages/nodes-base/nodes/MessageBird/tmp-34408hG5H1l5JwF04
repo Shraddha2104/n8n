@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2017"
+    ],
+    "types": [],
+    "module": "commonjs",
+    "importHelpers": true,
+    "preserveConstEnums": true,
+    "declaration": true,
+    "target": "es2017",
+    "sourceMap": true
+  },
+  "include": [
+    "/Users/shraddha/Desktop/shraddha_n8n/n8n/packages/nodes-base/nodes/MessageBird/*.credentials.ts",
+    "/Users/shraddha/Desktop/shraddha_n8n/n8n/packages/nodes-base/nodes/MessageBird/*.node.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
